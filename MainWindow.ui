@@ -179,59 +179,41 @@
        </size>
       </property>
       <property name="title">
-       <string>Potentiostat Start Time</string>
+       <string>Select Potentiostat .txt File</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QCheckBox" name="GCPot_syncingBox">
-           <property name="text">
-            <string>Potentiostat Started Same Day As GC</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="startdate_label">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Select Potentiostat Start Date:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QDateEdit" name="dateEdit">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QLabel" name="label_3">
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
-            <string>Potentiostat Start Time:</string>
+            <string>File:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QTimeEdit" name="timeEdit">
-           <property name="locale">
-            <locale language="English" country="UnitedKingdom"/>
+          <widget class="QLabel" name="PotentiostatFile_label">
+           <property name="text">
+            <string/>
            </property>
-           <property name="displayFormat">
-            <string>hh:mm:ss </string>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="PotentiostatFile_button">
+           <property name="maximumSize">
+            <size>
+             <width>75</width>
+             <height>16777215</height>
+            </size>
            </property>
-           <property name="time">
-            <time>
-             <hour>0</hour>
-             <minute>0</minute>
-             <second>0</second>
-            </time>
+           <property name="text">
+            <string>Browse</string>
            </property>
           </widget>
          </item>
