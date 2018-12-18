@@ -31,31 +31,19 @@ class FlowCellFormatter(Ui_MainWindow):
 
         #Data Required For Formatting
         self.__gcdataframe = None
-        self.__dateState = Qt.Checked
         self.__potentiostat_TotalSeconds = None
         self.__calibration_slope = None
         self.__flow_rate = None
         self.__temperature = None
         self.__baseline = None
         self.__export_filename = None
+        self.__potentiostat_start_timestamp = None
+        self.__gc_timestamp = None
         #
 
         self.GCFile_button.clicked.connect(self.openGC)
-        self.timeEdit.timeChanged.connect(self.updatepotentiostatTime)
-        self.GCPot_syncingBox.stateChanged.connect(self.updatedateState)
         self.Format_button.clicked.connect(self.formatData)
-
-        self.updatepotentiostatTime()
-        self.dateEdit.setDate(QDate.currentDate())
-
-    def updatedateState(self, state):
-        self.__dateState = state
-        if self.__dateState == Qt.Checked:
-            self.dateEdit.setEnabled(False)
-            self.startdate_label.setEnabled(False)
-        else:
-            self.dateEdit.setEnabled(True)
-            self.startdate_label.setEnabled(True)
+        self.PotentiostatFile_button.clicked.connect(self.openPotentiostat)
 
     def formatData(self):
         try:
@@ -95,26 +83,10 @@ class FlowCellFormatter(Ui_MainWindow):
         if self.__gcdataframe is None:
             return
 
-        gcstarttime, gcstartdate = self.__gcdataframe.iloc[0, 2].split()
-
-        potentiostat_date = self.dateEdit.date().toString(Qt.ISODate)
-        potentiostat_time = self.timeEdit.time().toString()
-
-        if self.__dateState == Qt.Checked:
-            potentiostat_start = gcstartdate + " " + potentiostat_time
-            potentiostat_timestamp = datetime.strptime(potentiostat_start, "%y/%m/%d %H:%M:%S")
-
-        else:
-            potentiostat_start = potentiostat_date + " " + potentiostat_time
-            potentiostat_timestamp = datetime.strptime(potentiostat_start, "%Y-%m-%d %H:%M:%S")
-
-        self.__potentiostat_TotalSeconds = potentiostat_timestamp.timestamp()
-        print(self.__potentiostat_TotalSeconds)
-
         self.__gcdataframe['Corrected Time'] = self.__gcdataframe["Inject Time"].apply(self.convert_to_seconds)
         self.__gcdataframe['Corrected Area'] = self.__gcdataframe["Area"].apply(self.correct_area)
         self.__gcdataframe['Rate (mole / sec)'] = self.__gcdataframe["Corrected Area"].apply(self.convert_to_rate)
-        print(self.__gcdataframe)
+
         self.__gcdataframe.to_csv(self.__export_filename, index=False)
 
     def error_msg(self, msg):
@@ -146,17 +118,14 @@ class FlowCellFormatter(Ui_MainWindow):
     def convert_to_seconds(self, timestamp):
         try:
             injection_timestamp = datetime.strptime(timestamp, "%H:%M:%S %y/%m/%d").timestamp()
-            return injection_timestamp - self.__potentiostat_TotalSeconds
+            return injection_timestamp - self.__potentiostat_start_timestamp
         except:
             return ""
 
-    def updatepotentiostatTime(self):
-        self.__potentiostatTime = self.timeEdit.time().toString().split(":")
-        self.__potentiostatTime = [int(x) for x in self.__potentiostatTime]
-
     def openGC(self):
-        fname, check = QFileDialog.getOpenFileName(None, "Select GC Data File", 'C:\\', "xlsx (*.xlsx)")
+        fname, check = QFileDialog.getOpenFileName(None, "Select GC .xlsx Data File", 'C:\\', "xlsx (*.xlsx)")
         print(fname, check)
+
         if fname == "":
             return
         gcdf = pd.read_excel(fname, skiprows=13)
@@ -170,6 +139,32 @@ class FlowCellFormatter(Ui_MainWindow):
         self.__gcdataframe = gcdf.filter(["Injection #", "Area", "Inject Time"], axis=1)
         self.GCFile_label.setText(fname)
 
+    def openPotentiostat(self):
+
+        fname, check = QFileDialog.getOpenFileName(None, "Select Potentiostat .txt Data File", 'C:\\', "txt (*.txt)")
+
+        experiment_type = 'Amperometric i-t Curve'
+        interval = 'Sample Interval (s) ='
+
+        with open(fname) as data_file:
+            potentiostat_data = data_file.readlines()
+        potentiostat_data = [x.strip() for x in potentiostat_data]
+
+        intervals = [i for i, s in enumerate(potentiostat_data) if interval in s]
+
+        intervals = potentiostat_data[intervals[0]]
+
+        intervals = intervals.split()[-1]
+
+        if experiment_type not in potentiostat_data:
+            return
+
+        self.PotentiostatFile_label.setText(fname)
+
+        print(potentiostat_data[0])
+        start_time = potentiostat_data[0]
+        format_ = "%b. %d, %Y   %H:%M:%S"
+        self.__potentiostat_start_timestamp = datetime.strptime(start_time, format_).timestamp() - float(intervals)#Because the potentiostat starts recording one interval after applying the potential
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
