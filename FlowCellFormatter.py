@@ -145,6 +145,7 @@ class FlowCellFormatter(Ui_MainWindow):
 
         experiment_type = 'Amperometric i-t Curve'
         interval = 'Sample Interval (s) ='
+        run_time = 'Run Time (sec) ='
 
         with open(fname) as data_file:
             potentiostat_data = data_file.readlines()
@@ -156,6 +157,11 @@ class FlowCellFormatter(Ui_MainWindow):
 
         intervals = intervals.split()[-1]
 
+        run_times = [i for i, s in enumerate(potentiostat_data) if run_time in s]
+        run_times = potentiostat_data[run_times[0]]
+        run_times = run_times.split()[-1]
+        print(float(run_times))
+
         if experiment_type not in potentiostat_data:
             return
 
@@ -164,7 +170,7 @@ class FlowCellFormatter(Ui_MainWindow):
         print(potentiostat_data[0])
         start_time = potentiostat_data[0]
         format_ = "%b. %d, %Y   %H:%M:%S"
-        self.__potentiostat_start_timestamp = datetime.strptime(start_time, format_).timestamp() - float(intervals)#Because the potentiostat starts recording one interval after applying the potential
+        self.__potentiostat_start_timestamp = datetime.strptime(start_time, format_).timestamp() - float(run_times)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
